@@ -1,5 +1,5 @@
 # Written by Chase Golem
-# Last edited 2 July 2020
+# Last edited 3 July 2020
 
 # Imports
 import signal
@@ -64,20 +64,49 @@ def drawText(text):
     disp.image(image)
     disp.display()
 
+start = 0
+end = 5
+
+print(start, end)
+
+@touchphat.on_release('Back')
+def movebar_left(event):
+    print("move back")
+    global start
+    global end
+    if start != 0:
+        start = start - 1
+        end = end - 1
+        sphd.clear()
+        for x in range(start, end):
+            sphd.set_pixel(x, 6, 0.5)
+        sphd.show()
+        print('moved')
+        print(start, end)
+    
+@touchphat.on_release('Enter')
+def movebar_right(event):
+    print('move forward')
+    global start
+    global end
+    if end != 17:
+        start = start + 1
+        end = end + 1
+        sphd.clear()
+        for x in range(start, end):
+            sphd.set_pixel(x, 6, 0.5)
+        sphd.show()
+        print('moved') 
+        print(start, end) 
 
 drawText("Press A to begin.")
 
 @touchphat.on_release('A')
 def handle_touch(event):
     started = True
-    drawText("ok")
+    drawText("Use arrows to move.")
     time.sleep(0.5)
-    drawText("wheee")
-    while True:
-        for x in range(17):
-            sphd.clear()
-            for y in range(7):
-                sphd.set_pixel(x, y, 0.25)
-            sphd.show()
-            time.sleep(1/17.0)
-    
+    sphd.clear()
+    for x in range(start, end):
+        sphd.set_pixel(x, 6, 0.5)
+    sphd.show()
