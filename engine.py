@@ -8,7 +8,6 @@ import time
 import os
 import math
 import sys
-import transmission
 from random import randint
 
 import touchphat
@@ -75,13 +74,11 @@ def drawText(text):
     disp.image(image)
     disp.display()
 
-
 start = 0
 end = 5
 finished = False
 
 print(start, end)
-
 
 def drawBricks():
     global bricks
@@ -90,7 +87,6 @@ def drawBricks():
             sphd.set_pixel(a[1], a[0], 0.5)
             sphd.show()
         time.sleep(0.05)
-
 
 def calculateBricks():
     global bricks
@@ -115,7 +111,6 @@ def calculateBricks():
                 drawBricks()
                 break
 
-
 currentPosition = [2, 4]  # x, y; x starts at 0 -> 16, y starts at 6 -> 0
 currentDirection = "up"
 horizontalDirection = "right"
@@ -133,7 +128,6 @@ def liveRedraw():
         sphd.set_pixel(x, 6, 0.5)
     sphd.show()
     time.sleep(1/10000000)
-
 
 def restart():
     global started
@@ -175,10 +169,10 @@ def startBallMovement():
         if finished == False:
             if currentDirection == "up":
                 if horizontalDirection == "right":
-                    currentPosition[0] += 1  # increasing to right
+                    currentPosition[0] -= 1  # increasing to right
                     currentPosition[1] -= 1  # increasing to top
                 else:
-                    currentPosition[0] -= 1  # decreasing to left
+                    currentPosition[0] += 1  # decreasing to left
                     currentPosition[1] -= 1  # increasing to top
 
                 liveRedraw()
@@ -188,22 +182,41 @@ def startBallMovement():
                         if [currentPosition[1], currentPosition[0]] == b:
                             print(_, "brick detected")
                             currentDirection = "down"
+                            if(horizontalDirection == "right"):
+                                horizontalDirection = "left"
+                            else:
+                                horizontalDirection = "right"
                             bricks.remove(_)
                             for a in _:
                                 sphd.set_pixel(a[1], a[0], 0)
                                 sphd.show()
 
-                if currentPosition[1] == 0:
+                if currentPosition == [0, 0]:
                     currentDirection = "down"
+                    horizontalDirection = "right"
+                elif currentPosition == [0, 6]:
+                    currentDirection = "up"
+                    currentPosition = [1, 6]
+                else:
+                    if currentPosition[1] == 0:
+                        currentDirection = "down"
+                        if(horizontalDirection == "right"):
+                            horizontalDirection = "left"
+                        else:
+                            horizontalDirection = "right"
 
-                if currentPosition[1] == 6:
-                    drawText("Finished. Resetting...")
+                    if currentPosition[0] >= 16:
+                        if(horizontalDirection == "right"):
+                            horizontalDirection = "left"
+                        else:
+                            horizontalDirection = "right"
 
-                if currentPosition[0] == 16:
-                    currentDirection = "down"
-
-                if currentPosition[0] == 0:
-                    currentDirection = "down"
+                    if currentPosition[0] == 0:
+                        if(horizontalDirection == "right"):
+                            horizontalDirection = "left"
+                        else:
+                            horizontalDirection = "right"
+                
 
             if currentDirection == "down":
                 if horizontalDirection == "left":
@@ -213,6 +226,20 @@ def startBallMovement():
                     currentPosition[0] += 1  # increasing to right
                     currentPosition[1] += 1  # decreasing to bottom
 
+                for _ in bricks:
+                    for b in _:
+                        if [currentPosition[1], currentPosition[0]] == b:
+                            print(_, "brick detected")
+                            currentDirection = "up"
+                            if(horizontalDirection == "right"):
+                                horizontalDirection = "left"
+                            else:
+                                horizontalDirection = "right"
+                            bricks.remove(_)
+                            for a in _:
+                                sphd.set_pixel(a[1], a[0], 0)
+                                sphd.show()
+
                 liveRedraw()
 
                 print("Current Position (X, Y):",
@@ -221,21 +248,24 @@ def startBallMovement():
                 print(end > currentPosition[0])
                 print(start < currentPosition[0])
                 if currentPosition[1] == 6:
-                    if end > currentPosition[0] and start < currentPosition[0]:
-                        currentDirection = "up"
+                    if end >= currentPosition[0] and start <= currentPosition[0]:
                         if(horizontalDirection == "right"):
                             horizontalDirection = "left"
                         else:
                             horizontalDirection = "right"
+                        currentDirection = "up"
                     else:
                         finished = True
                         drawText("Finished. Resetting...")
                         time.sleep(5)
-                        drawText("Sending Transmission...")
-                        #transmission.finished()
+                        restart()
                         break
 
-                if currentPosition[0] == 1:
+                if currentPosition == [0, 6]:
+                    currentDirection = "up"
+                    currentPosition = [1, 6]
+
+                if currentPosition[0] <= 0:
                     horizontalDirection = "right"
 
                 if currentPosition[0] >= 16:
@@ -245,6 +275,14 @@ def startBallMovement():
             liveRedraw()
             time.sleep(1)
 
+        if(len(bricks) == 0):
+            finished = True
+            drawText("All bricks destroyed.")
+            time.sleep(0.5)
+            drawText("Resetting...")
+            time.sleep(0.5)
+            restart()
+            break
 
 @touchphat.on_release('Back')
 def movebar_left(event):
@@ -289,18 +327,3 @@ def handle_touch(event):
             ball = threading.Thread(target=startBallMovement)
             ball.start()
             ball_started = True # should rely on 'started' after ball is started, because threading isn't easily stopped
-
-""" @touchphat.on_release('D')
-def handle_touch(event):
-    global started
-    global ball
-    global ball_started
-    global finished
-    if started == True:
-        drawText("Interrupting...")
-        started = False
-        ball_started = False
-        sphd.clear()
-        sphd.show()
-        finished = True
-        transmission.finished() """

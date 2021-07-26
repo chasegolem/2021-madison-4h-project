@@ -1,2 +1,3 @@
-__pycache__/transmission.cpython-37.pyc
+__pycache__
 ._engine.py
+.gitignore
