@@ -1,5 +1,5 @@
 # Written by Chase Golem
-# Last edited 24 July 2020
+# Last edited 26 July 2020
 # Transmission file, starts game
 
 # Imports
