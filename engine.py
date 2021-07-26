@@ -80,13 +80,18 @@ finished = False
 
 print(start, end)
 
+ballsInitialized = False
+
 def drawBricks():
+    global ballsInitialized
     global bricks
     for b in bricks:
         for a in b:
             sphd.set_pixel(a[1], a[0], 0.5)
             sphd.show()
         time.sleep(0.05)
+    time.sleep(3)
+    ballsInitialized = True
 
 def calculateBricks():
     global bricks
@@ -138,6 +143,7 @@ def restart():
     global horizontalDirection
     global bricks
     global ball
+    sphd.set_pixel(currentPosition[0], currentPosition[1], 0)
     drawText("Press A to begin.")
     bricks.clear()
     sphd.clear()
@@ -160,6 +166,7 @@ def startBallMovement():
     global end
     global finished
     global ball
+    global ballsInitialized
     sphd.set_pixel(currentPosition[0], currentPosition[1], 1)
     sphd.show()
 
@@ -275,12 +282,12 @@ def startBallMovement():
             liveRedraw()
             time.sleep(1)
 
-        if(len(bricks) == 0):
+        if(len(bricks) == 0 and ballsInitialized == True):
             finished = True
             drawText("All bricks destroyed.")
-            time.sleep(0.5)
+            time.sleep(1)
             drawText("Resetting...")
-            time.sleep(0.5)
+            time.sleep(1)
             restart()
             break
 
