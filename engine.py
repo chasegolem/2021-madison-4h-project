@@ -58,7 +58,7 @@ bricks = []
 
 ball = False
 
-def drawText(text):
+def drawText(text): # text draw
     disp.clear()
     disp.display()
     width = disp.width
@@ -82,7 +82,7 @@ print(start, end)
 
 ballsInitialized = False
 
-def drawBricks():
+def drawBricks(): # draw bricks on display
     global ballsInitialized
     global bricks
     for b in bricks:
@@ -93,7 +93,7 @@ def drawBricks():
     time.sleep(3)
     ballsInitialized = True
 
-def calculateBricks():
+def calculateBricks(): # calculate brick size and positions
     global bricks
     global num
     global x
@@ -121,7 +121,7 @@ currentDirection = "up"
 horizontalDirection = "right"
 ball_started = False
 
-def liveRedraw():
+def liveRedraw(): 
     global finished
     sphd.clear()
     if finished == False:
@@ -134,30 +134,53 @@ def liveRedraw():
     sphd.show()
     time.sleep(1/10000000)
 
-def restart():
-    global started
+def restart(): # restart game after ending
+    global currentDirection
+    global currentPosition
+    global horizontalDirection 
+    global ball_started
+    global ballsInitialized
     global start
     global end
-    global currentPosition
-    global currentDirection
-    global horizontalDirection
+    global finished
     global bricks
     global ball
-    sphd.set_pixel(currentPosition[0], currentPosition[1], 0)
-    drawText("Press A to begin.")
-    bricks.clear()
-    sphd.clear()
-    sphd.show()
-    started = False
-    start = 0
-    end = 5
+    global started
     currentPosition = [2, 4]
     currentDirection = "up"
     horizontalDirection = "right"
-    ball = threading.Thread(target=startBallMovement)
-    ball.start()
+    ball_started = False
+    bricks = []
+    ballsInitialized = False
+    ball = False
+    start = 0
+    end = 5
+    finished = False
+    started = False
+    disp.clear()
+    disp.display()
+    sphd.clear()
+    sphd.show()
+    drawText("Press A to begin.")
 
-def startBallMovement():
+    @touchphat.on_release('A')
+    def start2(event):
+        global started
+        global ball_started
+        global ball
+        if started == False:
+            started = True
+            drawText("Use arrows to move.")
+            time.sleep(0.5)
+            calculateBricks()
+            if ball_started == False:
+                ball = threading.Thread(target=startBallMovement)
+                ball.start()
+                
+                ball_started = True # should rely on 'started' after ball is started, because threading isn't easily stopped
+
+
+def startBallMovement(): # begin movement of ball (1x1 pixel)
     global currentPosition
     global currentDirection
     global horizontalDirection
@@ -254,7 +277,7 @@ def startBallMovement():
                 print("Bar Position (Start, End):", start, end)
                 print(end > currentPosition[0])
                 print(start < currentPosition[0])
-                if currentPosition[1] == 6:
+                if currentPosition[1] == 5:
                     if end >= currentPosition[0] and start <= currentPosition[0]:
                         if(horizontalDirection == "right"):
                             horizontalDirection = "left"
@@ -263,10 +286,12 @@ def startBallMovement():
                         currentDirection = "up"
                     else:
                         finished = True
-                        drawText("Finished. Resetting...")
-                        time.sleep(5)
+                        drawText("Bar not found.")
+                        time.sleep(1)
+                        drawText("Restarting...")
+                        time.sleep(1)
                         restart()
-                        break
+                        sys.exit()
 
                 if currentPosition == [0, 6]:
                     currentDirection = "up"
@@ -286,12 +311,12 @@ def startBallMovement():
             finished = True
             drawText("All bricks destroyed.")
             time.sleep(1)
-            drawText("Resetting...")
+            drawText("Restarting...")
             time.sleep(1)
             restart()
-            break
+            sys.exit()
 
-@touchphat.on_release('Back')
+@touchphat.on_release('Back') # detect touch from left (back) touch pad
 def movebar_left(event):
     print("move back")
     global start
@@ -305,7 +330,7 @@ def movebar_left(event):
         print(start, end)
 
 
-@touchphat.on_release('Enter')
+@touchphat.on_release('Enter') # detect touch from right (enter) touch pad
 def movebar_right(event):
     print('move forward')
     global start
@@ -320,7 +345,7 @@ def movebar_right(event):
 
 drawText("Press A to begin.")
 
-@touchphat.on_release('A')
+@touchphat.on_release('A') # detect touch from 'a' touch pad
 def handle_touch(event):
     global started
     global ball
@@ -333,4 +358,5 @@ def handle_touch(event):
         if ball_started == False:
             ball = threading.Thread(target=startBallMovement)
             ball.start()
+            
             ball_started = True # should rely on 'started' after ball is started, because threading isn't easily stopped
